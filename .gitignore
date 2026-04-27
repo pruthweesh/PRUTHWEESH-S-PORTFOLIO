@@ -1,0 +1,25 @@
+# ENV (VERY IMPORTANT)
+.env
+backend/.env
+frontend/.env
+
+# Node modules
+node_modules/
+backend/node_modules/
+frontend/node_modules/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Build files
+dist/
+build/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
