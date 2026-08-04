@@ -18,4 +18,22 @@ api.interceptors.request.use(
   }
 );
 
+// Cache for portfolio endpoint to prevent multiple concurrent requests
+let portfolioPromise = null;
+const originalGet = api.get;
+
+api.get = function (url, config) {
+  if (url === '/portfolio') {
+    if (!portfolioPromise) {
+      portfolioPromise = originalGet.call(this, url, config)
+        .catch((err) => {
+          portfolioPromise = null; // Clear cache on error to allow retries
+          throw err;
+        });
+    }
+    return portfolioPromise;
+  }
+  return originalGet.call(this, url, config);
+};
+
 export default api;

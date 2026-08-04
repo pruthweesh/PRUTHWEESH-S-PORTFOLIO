@@ -17,6 +17,7 @@ const uploadRoutes = require('./src/routes/upload.routes');
 const aboutRoutes = require('./src/routes/about.routes');
 const experienceRoutes = require('./src/routes/experience.routes');
 const educationRoutes = require('./src/routes/education.routes');
+const portfolioRoutes = require('./src/routes/portfolio.routes');
 
 // Connect to database
 connectDB();
@@ -46,6 +47,7 @@ app.use('/api/upload', uploadRoutes);
 app.use('/api/about', aboutRoutes);
 app.use('/api/experiences', experienceRoutes);
 app.use('/api/educations', educationRoutes);
+app.use('/api/portfolio', portfolioRoutes);
 
 app.get('/', (req, res) => {
   res.send('API is running...');

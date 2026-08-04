@@ -50,26 +50,23 @@ const Education = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [certRes, achRes, eduRes] = await Promise.all([
-          api.get('/certifications'),
-          api.get('/achievements'),
-          api.get('/educations')
-        ]);
-        
-        if (certRes.data.success && certRes.data.data.length > 0) {
-          setCertifications(certRes.data.data);
+        const response = await api.get('/portfolio');
+        const { certifications: certs, achievements: achs, educations: edus } = response.data.data || {};
+
+        if (certs && certs.length > 0) {
+          setCertifications(certs);
         } else {
           setCertifications(fallbackCertifications);
         }
 
-        if (achRes.data.success && achRes.data.data.length > 0) {
-          setAchievements(achRes.data.data);
+        if (achs && achs.length > 0) {
+          setAchievements(achs);
         } else {
           setAchievements(fallbackAchievements);
         }
 
-        if (eduRes.data.success && eduRes.data.data.length > 0) {
-          setEducations(eduRes.data.data);
+        if (edus && edus.length > 0) {
+          setEducations(edus);
         } else {
           setEducations(fallbackEducations);
         }

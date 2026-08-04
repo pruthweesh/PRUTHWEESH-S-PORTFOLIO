@@ -28,9 +28,9 @@ const About = () => {
   useEffect(() => {
     const fetchAbout = async () => {
       try {
-        const response = await api.get('/about');
-        if (response.data.success && response.data.data.length > 0) {
-          setAboutData(response.data.data[0]); // Using the first about entry
+        const response = await api.get('/portfolio');
+        if (response.data.success && response.data.data?.about?.length > 0) {
+          setAboutData(response.data.data.about[0]);
         } else {
           setAboutData(fallbackAbout);
         }

@@ -28,13 +28,12 @@ const Skills = () => {
       tags: ['Git', 'GitHub', 'VS Code', 'Claude AI', 'Cursor AI', 'Lovable AI', 'Bolt', 'Antigravity']
     }
   ];
-
   useEffect(() => {
     const fetchSkills = async () => {
       try {
-        const response = await api.get('/skills');
-        if (response.data.success && response.data.data.length > 0) {
-          const skills = response.data.data;
+        const response = await api.get('/portfolio');
+        if (response.data.success && response.data.data?.skills?.length > 0) {
+          const skills = response.data.data.skills;
           const grouped = {
             frontend: { title: 'Frontend Development 🎨', tags: [] },
             backend: { title: 'Backend Development ⚙️', tags: [] },

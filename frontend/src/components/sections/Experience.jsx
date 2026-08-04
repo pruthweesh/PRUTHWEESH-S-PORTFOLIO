@@ -31,9 +31,9 @@ const Experience = () => {
   useEffect(() => {
     const fetchExperiences = async () => {
       try {
-        const response = await api.get('/experiences');
-        if (response.data.success && response.data.data.length > 0) {
-          setExperiences(response.data.data);
+        const response = await api.get('/portfolio');
+        if (response.data.success && response.data.data?.experiences?.length > 0) {
+          setExperiences(response.data.data.experiences);
         } else {
           setExperiences(fallbackExperiences);
         }
@@ -44,6 +44,7 @@ const Experience = () => {
     };
     fetchExperiences();
   }, []);
+
   return (
     <section id="experience" className="section-padding px-6 lg:px-12 relative overflow-hidden bg-background-section-2">
       <div className="max-w-4xl mx-auto">

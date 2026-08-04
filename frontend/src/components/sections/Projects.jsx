@@ -54,9 +54,9 @@ const Projects = () => {
   useEffect(() => {
     const fetchProjects = async () => {
       try {
-        const response = await api.get('/projects');
-        if (response.data.success && response.data.data.length > 0) {
-          setProjects(response.data.data);
+        const response = await api.get('/portfolio');
+        if (response.data.success && response.data.data?.projects?.length > 0) {
+          setProjects(response.data.data.projects);
         } else {
           setProjects(fallbackProjects);
         }
