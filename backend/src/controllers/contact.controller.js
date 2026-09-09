@@ -20,21 +20,6 @@ const sendMessage = asyncHandler(async (req, res) => {
     throw new Error('Please enter a valid email address');
   }
 
-  // Domain existence check using DNS MX records
-  const domain = email.split('@')[1];
-  const dns = require('dns');
-  const util = require('util');
-  const resolveMx = util.promisify(dns.resolveMx);
-  
-  try {
-    const mxRecords = await resolveMx(domain);
-    if (!mxRecords || mxRecords.length === 0) {
-      throw new Error('Domain has no mail servers');
-    }
-  } catch (err) {
-    res.status(400);
-    throw new Error('This email domain does not exist or cannot receive mail. Please use a real email.');
-  }
 
   try {
     // Send email to admin first to ensure credentials work
