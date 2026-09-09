@@ -18,20 +18,19 @@ api.interceptors.request.use(
   }
 );
 
-// Cache for portfolio endpoint to prevent multiple concurrent requests
-let portfolioPromise = null;
+// Deduplicate in-flight concurrent requests to /portfolio
+let inFlightPortfolio = null;
 const originalGet = api.get;
 
 api.get = function (url, config) {
   if (url === '/portfolio') {
-    if (!portfolioPromise) {
-      portfolioPromise = originalGet.call(this, url, config)
-        .catch((err) => {
-          portfolioPromise = null; // Clear cache on error to allow retries
-          throw err;
+    if (!inFlightPortfolio) {
+      inFlightPortfolio = originalGet.call(this, url, config)
+        .finally(() => {
+          inFlightPortfolio = null; // Clear after completion so future requests get fresh data
         });
     }
-    return portfolioPromise;
+    return inFlightPortfolio;
   }
   return originalGet.call(this, url, config);
 };

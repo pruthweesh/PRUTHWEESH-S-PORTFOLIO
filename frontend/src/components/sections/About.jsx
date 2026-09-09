@@ -5,8 +5,6 @@ import { useState, useEffect } from 'react';
 import api from '../../services/api';
 
 const About = () => {
-  const [aboutData, setAboutData] = useState(null);
-
   const fallbackAbout = {
     name: "Pruthweesh NV",
     role: "MERN Stack Developer",
@@ -25,24 +23,26 @@ const About = () => {
     resumeLink: "/resume.pdf"
   };
 
+  const [aboutData, setAboutData] = useState(fallbackAbout);
+
   useEffect(() => {
+    let cancelled = false;
     const fetchAbout = async () => {
       try {
         const response = await api.get('/portfolio');
-        if (response.data.success && response.data.data?.about?.length > 0) {
+        if (!cancelled && response.data.success && response.data.data?.about?.length > 0) {
           setAboutData(response.data.data.about[0]);
-        } else {
-          setAboutData(fallbackAbout);
         }
       } catch (error) {
         console.error('Error fetching about data:', error);
-        setAboutData(fallbackAbout);
       }
     };
     fetchAbout();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
-  if (!aboutData) return null;
   return (
     <section id="about" className="section-padding px-6 lg:px-12 relative overflow-hidden bg-background-section-2">
       <div className="max-w-6xl mx-auto">
@@ -159,6 +159,7 @@ const About = () => {
             </motion.h2>
 
             <motion.div 
+              key={aboutData._id || 'fallback'}
               variants={{
                 hidden: { opacity: 0 },
                 show: {

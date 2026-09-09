@@ -8,6 +8,7 @@ const Education = () => {
   const [certifications, setCertifications] = useState([]);
   const [achievements, setAchievements] = useState([]);
   const [educations, setEducations] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [selectedImages, setSelectedImages] = useState([]);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [modalTitle, setModalTitle] = useState('');
@@ -48,36 +49,48 @@ const Education = () => {
   ];
 
   useEffect(() => {
+    let cancelled = false;
     const fetchData = async () => {
       try {
         const response = await api.get('/portfolio');
-        const { certifications: certs, achievements: achs, educations: edus } = response.data.data || {};
+        if (!cancelled) {
+          const { certifications: certs, achievements: achs, educations: edus } = response.data.data || {};
 
-        if (certs && certs.length > 0) {
-          setCertifications(certs);
-        } else {
-          setCertifications(fallbackCertifications);
-        }
+          if (certs && certs.length > 0) {
+            setCertifications(certs);
+          } else {
+            setCertifications(fallbackCertifications);
+          }
 
-        if (achs && achs.length > 0) {
-          setAchievements(achs);
-        } else {
-          setAchievements(fallbackAchievements);
-        }
+          if (achs && achs.length > 0) {
+            setAchievements(achs);
+          } else {
+            setAchievements(fallbackAchievements);
+          }
 
-        if (edus && edus.length > 0) {
-          setEducations(edus);
-        } else {
-          setEducations(fallbackEducations);
+          if (edus && edus.length > 0) {
+            setEducations(edus);
+          } else {
+            setEducations(fallbackEducations);
+          }
         }
       } catch (error) {
         console.error('Error fetching data:', error);
-        setCertifications(fallbackCertifications);
-        setAchievements(fallbackAchievements);
-        setEducations(fallbackEducations);
+        if (!cancelled) {
+          setCertifications(fallbackCertifications);
+          setAchievements(fallbackAchievements);
+          setEducations(fallbackEducations);
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
       }
     };
     fetchData();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   return (
@@ -97,6 +110,7 @@ const Education = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-16">
           {/* Left Column: Education */}
           <motion.div
+            key={`edu-${educations.length}-${educations[0]?._id || 'initial'}`}
             variants={{
               hidden: { opacity: 0 },
               show: {
@@ -175,6 +189,7 @@ const Education = () => {
               <ScrollText className="text-secondary" /> Certifications
             </h3>
             <motion.div 
+              key={`cert-${certifications.length}`}
               variants={{
                 hidden: { opacity: 0 },
                 show: {
@@ -234,6 +249,7 @@ const Education = () => {
             <Trophy className="text-primary" /> Achievements
           </h3>
           <motion.div 
+            key={`ach-${achievements.length}`}
             variants={{
               hidden: { opacity: 0 },
               show: {

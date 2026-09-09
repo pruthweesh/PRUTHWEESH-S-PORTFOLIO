@@ -6,6 +6,7 @@ import Modal from '../ui/Modal';
 
 const Experience = () => {
   const [experiences, setExperiences] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [selectedImages, setSelectedImages] = useState([]);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [modalTitle, setModalTitle] = useState('');
@@ -29,20 +30,32 @@ const Experience = () => {
   ];
 
   useEffect(() => {
+    let cancelled = false;
     const fetchExperiences = async () => {
       try {
         const response = await api.get('/portfolio');
-        if (response.data.success && response.data.data?.experiences?.length > 0) {
-          setExperiences(response.data.data.experiences);
-        } else {
-          setExperiences(fallbackExperiences);
+        if (!cancelled) {
+          if (response.data.success && response.data.data?.experiences?.length > 0) {
+            setExperiences(response.data.data.experiences);
+          } else {
+            setExperiences(fallbackExperiences);
+          }
         }
       } catch (error) {
         console.error('Error fetching experiences:', error);
-        setExperiences(fallbackExperiences);
+        if (!cancelled) {
+          setExperiences(fallbackExperiences);
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
       }
     };
     fetchExperiences();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   return (
@@ -59,21 +72,35 @@ const Experience = () => {
           </motion.h2>
         </div>
 
-        <motion.div 
-          variants={{
-            hidden: { opacity: 0 },
-            show: {
-              opacity: 1,
-              transition: {
-                staggerChildren: 0.2
+        {loading && experiences.length === 0 ? (
+          <div className="relative border-l-0 md:border-l-2 border-primary/30 ml-0 md:ml-8 space-y-8 md:space-y-12 pb-8 animate-pulse">
+            <div className="glass-card p-6 sm:p-8 ml-0 md:ml-12 border-t-4 border-t-primary/20 h-64">
+              <div className="h-6 bg-slate-700/40 rounded w-1/2 mb-3" />
+              <div className="h-4 bg-slate-700/20 rounded w-1/3 mb-6" />
+              <div className="space-y-2">
+                <div className="h-3 bg-slate-700/30 rounded w-full" />
+                <div className="h-3 bg-slate-700/30 rounded w-5/6" />
+                <div className="h-3 bg-slate-700/30 rounded w-4/6" />
+              </div>
+            </div>
+          </div>
+        ) : (
+          <motion.div 
+            key={experiences.map(e => e._id || e.title).join('-') || 'exp-list'}
+            variants={{
+              hidden: { opacity: 0 },
+              show: {
+                opacity: 1,
+                transition: {
+                  staggerChildren: 0.2
+                }
               }
-            }
-          }}
-          initial="hidden"
-          whileInView="show"
-          viewport={{ once: true }}
-          className="relative border-l-0 md:border-l-2 border-primary/30 ml-0 md:ml-8 space-y-8 md:space-y-12 pb-8"
-        >
+            }}
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true }}
+            className="relative border-l-0 md:border-l-2 border-primary/30 ml-0 md:ml-8 space-y-8 md:space-y-12 pb-8"
+          >
           
           {experiences.map((exp, idx) => (
             <motion.div 
@@ -173,6 +200,7 @@ const Experience = () => {
           ))}
 
         </motion.div>
+        )}
       </div>
 
       {/* Experience Image Modal */}

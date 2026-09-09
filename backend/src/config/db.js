@@ -1,9 +1,12 @@
 const mongoose = require('mongoose');
 
 const connectDB = async () => {
+  if (mongoose.connection.readyState >= 1) {
+    return;
+  }
   try {
     // Mask the URI for security: hide the password
-    const maskedUri = process.env.MONGO_URI.replace(/:([^:@]+)@/, ':****@');
+    const maskedUri = process.env.MONGO_URI ? process.env.MONGO_URI.replace(/:([^:@]+)@/, ':****@') : 'undefined';
     console.log(`Attempting to connect to MongoDB...`);
     
     await mongoose.connect(process.env.MONGO_URI);

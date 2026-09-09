@@ -52,23 +52,33 @@ const Projects = () => {
   ];
 
   useEffect(() => {
+    let cancelled = false;
     const fetchProjects = async () => {
       try {
         const response = await api.get('/portfolio');
-        if (response.data.success && response.data.data?.projects?.length > 0) {
-          setProjects(response.data.data.projects);
-        } else {
-          setProjects(fallbackProjects);
+        if (!cancelled) {
+          if (response.data.success && response.data.data?.projects?.length > 0) {
+            setProjects(response.data.data.projects);
+          } else {
+            setProjects(fallbackProjects);
+          }
         }
       } catch (error) {
         console.error('Error fetching projects:', error);
-        setProjects(fallbackProjects);
+        if (!cancelled) {
+          setProjects(fallbackProjects);
+        }
       } finally {
-        setLoading(false);
+        if (!cancelled) {
+          setLoading(false);
+        }
       }
     };
 
     fetchProjects();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   return (
@@ -94,21 +104,37 @@ const Projects = () => {
           </motion.p>
         </div>
 
-        <motion.div 
-          variants={{
-            hidden: { opacity: 0 },
-            show: {
-              opacity: 1,
-              transition: {
-                staggerChildren: 0.2
+        {loading && projects.length === 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {[1, 2, 3].map((n) => (
+              <div key={n} className="glass-card p-6 sm:p-8 flex flex-col h-80 animate-pulse border-t-[3px] border-t-primary/20">
+                <div className="h-6 bg-slate-700/40 rounded w-3/4 mb-4" />
+                <div className="h-4 bg-slate-700/20 rounded w-1/2 mb-6" />
+                <div className="space-y-2 flex-grow">
+                  <div className="h-3 bg-slate-700/30 rounded w-full" />
+                  <div className="h-3 bg-slate-700/30 rounded w-5/6" />
+                </div>
+                <div className="h-10 bg-slate-700/20 rounded-lg mt-auto" />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <motion.div 
+            key={projects.map(p => p._id).join('-') || 'projects-list'}
+            variants={{
+              hidden: { opacity: 0 },
+              show: {
+                opacity: 1,
+                transition: {
+                  staggerChildren: 0.2
+                }
               }
-            }
-          }}
-          initial="hidden"
-          whileInView="show"
-          viewport={{ once: true }}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
-        >
+            }}
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true }}
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+          >
           {projects.map((project, index) => (
             <motion.div
               key={project._id}
@@ -194,7 +220,8 @@ const Projects = () => {
               </div>
             </motion.div>
           ))}
-        </motion.div>
+          </motion.div>
+        )}
       </div>
     </section>
   );
