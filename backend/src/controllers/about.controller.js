@@ -17,7 +17,7 @@ const getAboutById = asyncHandler(async (req, res) => {
 });
 
 const createAbout = asyncHandler(async (req, res) => {
-  const { name, role, location, degree, cgpa, status, github, linkedin, email, paragraphs, resumeLink, profileImage } = req.body;
+  const { name, role, location, degree, cgpa, status, github, linkedin, email, paragraphs, resumeLink } = req.body;
 
   // Optional: Ensure only one About document exists
   const existingCount = await About.countDocuments();
@@ -27,7 +27,7 @@ const createAbout = asyncHandler(async (req, res) => {
   }
 
   const about = new About({
-    name, role, location, degree, cgpa, status, github, linkedin, email, paragraphs, resumeLink, profileImage
+    name, role, location, degree, cgpa, status, github, linkedin, email, paragraphs, resumeLink
   });
 
   const createdAbout = await about.save();
@@ -35,7 +35,7 @@ const createAbout = asyncHandler(async (req, res) => {
 });
 
 const updateAbout = asyncHandler(async (req, res) => {
-  const { name, role, location, degree, cgpa, status, github, linkedin, email, paragraphs, resumeLink, profileImage } = req.body;
+  const { name, role, location, degree, cgpa, status, github, linkedin, email, paragraphs, resumeLink } = req.body;
 
   const about = await About.findById(req.params.id);
 
@@ -51,7 +51,6 @@ const updateAbout = asyncHandler(async (req, res) => {
     about.email = email || about.email;
     about.paragraphs = paragraphs || about.paragraphs;
     about.resumeLink = resumeLink || about.resumeLink;
-    about.profileImage = profileImage !== undefined ? profileImage : about.profileImage;
 
     const updatedAbout = await about.save();
     res.json({ success: true, data: updatedAbout });

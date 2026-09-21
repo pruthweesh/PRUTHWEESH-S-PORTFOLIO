@@ -26,10 +26,7 @@ import {
   GraduationCap,
   Info,
   Upload,
-  Image as ImageIcon,
-  Lock,
-  Eye,
-  EyeOff
+  Image as ImageIcon
 } from 'lucide-react';
 
 const Dashboard = () => {
@@ -56,47 +53,10 @@ const Dashboard = () => {
   const [currentEdit, setCurrentEdit] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [isUploading, setIsUploading] = useState(false);
-  const [changePasswordForm, setChangePasswordForm] = useState({
-    currentPassword: '',
-    newPassword: '',
-    confirmPassword: '',
-  });
-  const [isChangingPassword, setIsChangingPassword] = useState(false);
-  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
-  const [showNewPassword, setShowNewPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const handleLogout = () => {
     logout();
     navigate('/admin/login');
-  };
-
-  const handleChangePassword = async (e) => {
-    e.preventDefault();
-    if (changePasswordForm.newPassword.length < 8) {
-      toast.error('New password must be at least 8 characters');
-      return;
-    }
-    if (changePasswordForm.newPassword !== changePasswordForm.confirmPassword) {
-      toast.error('New passwords do not match');
-      return;
-    }
-    if (changePasswordForm.currentPassword === changePasswordForm.newPassword) {
-      toast.error('New password must be different from current password');
-      return;
-    }
-
-    setIsChangingPassword(true);
-    try {
-      const { data } = await api.post('/auth/change-password', changePasswordForm);
-      toast.success(data.message || 'Password changed successfully. Please log in again.');
-      logout();
-      navigate('/admin/login');
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to change password');
-    } finally {
-      setIsChangingPassword(false);
-    }
   };
 
   const fetchData = async () => {
@@ -142,7 +102,7 @@ const Dashboard = () => {
 
   const handleAdd = () => {
     const defaults = {
-      about: { name: '', role: '', paragraphs: [], location: '', degree: '', cgpa: '', status: '', github: '', linkedin: '', email: '', resumeLink: '', profileImage: '' },
+      about: { name: '', role: '', paragraphs: [], location: '', degree: '', cgpa: '', status: '', github: '', linkedin: '', email: '', resumeLink: '' },
       skills: { name: '', level: 80, category: 'Frontend' },
       experiences: { title: '', company: '', period: '', roleTypes: '', responsibilities: [], tags: [], images: [] },
       educations: { degree: '', institution: '', period: '', score: '' },
@@ -175,7 +135,6 @@ const Dashboard = () => {
     const file = e.target.files[0];
     if (!file) return;
 
-    const fieldName = e.target.dataset.field || 'image';
     const formData = new FormData();
     formData.append('image', file);
 
@@ -184,7 +143,7 @@ const Dashboard = () => {
       const { data } = await api.post('/upload', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
-      setCurrentEdit((prev) => ({ ...prev, [fieldName]: data.imageUrl }));
+      setCurrentEdit({ ...currentEdit, image: data.imageUrl });
       toast.success('Image uploaded successfully');
     } catch (error) {
       toast.error('Upload failed');
@@ -268,7 +227,6 @@ const Dashboard = () => {
     { id: 'certifications', label: 'Certifications', icon: <Award size={20} /> },
     { id: 'achievements', label: 'Achievements', icon: <Trophy size={20} /> },
     { id: 'messages', label: 'Messages', icon: <MessageSquare size={20} /> },
-    { id: 'change-password', label: 'Change Password', icon: <Lock size={20} /> },
   ];
 
   const filteredItems = data[activeTab]?.filter(item => {
@@ -330,22 +288,20 @@ const Dashboard = () => {
             <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="p-2 lg:hidden text-slate-400 hover:text-white">
               {isSidebarOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
-            <h2 className="text-2xl font-bold text-white capitalize">{activeTab === 'change-password' ? 'Change Password' : activeTab}</h2>
+            <h2 className="text-2xl font-bold text-white capitalize">{activeTab}</h2>
           </div>
 
           <div className="flex items-center gap-6">
-            {activeTab !== 'change-password' && (
-              <div className="relative hidden md:block">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                <input 
-                  type="text" 
-                  placeholder={`Search ${activeTab}...`}
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="bg-[#0f172a] border border-slate-700/50 rounded-xl pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all w-64"
-                />
-              </div>
-            )}
+            <div className="relative hidden md:block">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+              <input 
+                type="text" 
+                placeholder={`Search ${activeTab}...`}
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="bg-[#0f172a] border border-slate-700/50 rounded-xl pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all w-64"
+              />
+            </div>
             <div className="flex items-center gap-3 pl-6 border-l border-slate-700/50">
               <div className="text-right hidden sm:block">
                 <p className="text-sm font-bold text-white">Pruthweesh NV</p>
@@ -360,105 +316,7 @@ const Dashboard = () => {
 
         {/* Scrollable Content Area */}
         <div className="flex-1 overflow-y-auto p-8">
-          {activeTab === 'change-password' ? (
-            <div className="max-w-xl mx-auto">
-              <div className="bg-[#1e293b] rounded-3xl border border-slate-700/50 p-8 sm:p-10 shadow-2xl">
-                <div className="flex items-center gap-4 mb-8 pb-6 border-b border-slate-700/50">
-                  <div className="w-14 h-14 rounded-2xl bg-primary/10 text-primary flex items-center justify-center shadow-glow">
-                    <Lock size={28} />
-                  </div>
-                  <div>
-                    <h3 className="text-2xl font-bold text-white tracking-tight">Change Password</h3>
-                    <p className="text-sm text-slate-400 mt-1 font-medium">Update your admin credentials securely</p>
-                  </div>
-                </div>
-
-                <form onSubmit={handleChangePassword} className="space-y-6">
-                  <div className="space-y-2">
-                    <label className="text-sm font-bold text-slate-400 ml-1">Current Password</label>
-                    <div className="relative group">
-                      <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors" size={20} />
-                      <input
-                        type={showCurrentPassword ? 'text' : 'password'}
-                        value={changePasswordForm.currentPassword}
-                        onChange={(e) => setChangePasswordForm({ ...changePasswordForm, currentPassword: e.target.value })}
-                        className="w-full pl-12 pr-12 py-4 rounded-2xl bg-[#0f172a] border border-slate-700/50 focus:border-primary outline-none text-white transition-all text-sm placeholder:text-slate-600"
-                        placeholder="Enter current password"
-                        required
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                        className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors p-1"
-                      >
-                        {showCurrentPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-sm font-bold text-slate-400 ml-1">New Password</label>
-                    <div className="relative group">
-                      <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors" size={20} />
-                      <input
-                        type={showNewPassword ? 'text' : 'password'}
-                        value={changePasswordForm.newPassword}
-                        onChange={(e) => setChangePasswordForm({ ...changePasswordForm, newPassword: e.target.value })}
-                        className="w-full pl-12 pr-12 py-4 rounded-2xl bg-[#0f172a] border border-slate-700/50 focus:border-primary outline-none text-white transition-all text-sm placeholder:text-slate-600"
-                        placeholder="Enter new password (min. 8 characters)"
-                        required
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowNewPassword(!showNewPassword)}
-                        className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors p-1"
-                      >
-                        {showNewPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-sm font-bold text-slate-400 ml-1">Confirm New Password</label>
-                    <div className="relative group">
-                      <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors" size={20} />
-                      <input
-                        type={showConfirmPassword ? 'text' : 'password'}
-                        value={changePasswordForm.confirmPassword}
-                        onChange={(e) => setChangePasswordForm({ ...changePasswordForm, confirmPassword: e.target.value })}
-                        className="w-full pl-12 pr-12 py-4 rounded-2xl bg-[#0f172a] border border-slate-700/50 focus:border-primary outline-none text-white transition-all text-sm placeholder:text-slate-600"
-                        placeholder="Confirm new password"
-                        required
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                        className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors p-1"
-                      >
-                        {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                      </button>
-                    </div>
-                  </div>
-
-                  <button
-                    type="submit"
-                    disabled={isChangingPassword}
-                    className="w-full btn-primary py-4 rounded-2xl font-bold flex items-center justify-center gap-2 shadow-lg shadow-primary/20 hover:scale-[1.01] active:scale-[0.99] transition-all disabled:opacity-50 disabled:scale-100"
-                  >
-                    {isChangingPassword ? (
-                      <>
-                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                        <span>Changing Password...</span>
-                      </>
-                    ) : (
-                      'Change Password'
-                    )}
-                  </button>
-                </form>
-              </div>
-            </div>
-          ) : (
-            <div className="max-w-7xl mx-auto space-y-8">
+          <div className="max-w-7xl mx-auto space-y-8">
             {/* Quick Stats */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               <div className="bg-[#1e293b] p-6 rounded-2xl border border-slate-700/50 hover:border-primary/50 transition-all group">
@@ -655,9 +513,8 @@ const Dashboard = () => {
               )}
             </div>
           </div>
-        )}
-      </div>
-    </main>
+        </div>
+      </main>
 
       {/* Dynamic Modal Form */}
       <Modal 
@@ -728,53 +585,6 @@ const Dashboard = () => {
                 <div>
                   <label className="block text-sm font-bold text-slate-400 mb-2">Paragraphs (separated by newline)</label>
                   <textarea value={Array.isArray(currentEdit?.paragraphs) ? currentEdit.paragraphs.join('\n') : (currentEdit?.paragraphs || '')} onChange={(e) => setCurrentEdit({ ...currentEdit, paragraphs: e.target.value })} className="w-full px-5 py-3 rounded-xl bg-slate-900 border border-slate-700/50 focus:border-primary outline-none text-white transition-all resize-none" rows={5} required />
-                </div>
-                <div>
-                  <label className="block text-sm font-bold text-slate-400 mb-2">Profile Image</label>
-                  <div className="flex gap-4">
-                    <div className="flex-1">
-                      <input
-                        type="text"
-                        value={currentEdit?.profileImage || ''}
-                        onChange={(e) => setCurrentEdit({ ...currentEdit, profileImage: e.target.value })}
-                        className="w-full px-5 py-3 rounded-xl bg-slate-900 border border-slate-700/50 focus:border-primary outline-none text-white transition-all text-sm"
-                        placeholder="Image URL..."
-                      />
-                    </div>
-                    <div className="relative">
-                      <input
-                        type="file"
-                        id="about-profile-image-upload"
-                        className="hidden"
-                        onChange={handleImageUpload}
-                        accept="image/*"
-                        data-field="profileImage"
-                      />
-                      <label
-                        htmlFor="about-profile-image-upload"
-                        className={`flex items-center gap-2 px-4 py-3 rounded-xl bg-slate-800 border border-slate-700/50 text-slate-300 cursor-pointer hover:bg-slate-700 transition-all ${isUploading ? 'opacity-50 pointer-events-none' : ''}`}
-                      >
-                        {isUploading ? (
-                          <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
-                        ) : (
-                          <Upload size={18} />
-                        )}
-                        <span className="text-sm font-medium">Upload</span>
-                      </label>
-                    </div>
-                  </div>
-                  {currentEdit?.profileImage && (
-                    <div className="mt-3 relative w-20 h-20 rounded-full overflow-hidden border border-slate-700 group/preview">
-                      <img src={currentEdit.profileImage} alt="Profile Preview" className="w-full h-full object-cover" />
-                      <button
-                        type="button"
-                        onClick={() => setCurrentEdit({ ...currentEdit, profileImage: '' })}
-                        className="absolute top-1 right-1 p-1 bg-red-500 rounded-full text-white opacity-0 group-hover/preview:opacity-100 transition-opacity"
-                      >
-                        <X size={10} />
-                      </button>
-                    </div>
-                  )}
                 </div>
               </>
             )}

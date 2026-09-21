@@ -10,7 +10,6 @@ import ScrollProgress from './components/layout/ScrollProgress';
 import Home from './pages/Home';
 import AdminLogin from './pages/AdminLogin';
 import Dashboard from './pages/Dashboard';
-import ResetPassword from './pages/ResetPassword';
 
 const ProtectedRoute = ({ children }) => {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
@@ -38,7 +37,6 @@ const AppContent = () => {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/admin/login" element={<AdminLogin />} />
-          <Route path="/admin/reset-password/:token" element={<ResetPassword />} />
           <Route 
             path="/admin/dashboard" 
             element={
