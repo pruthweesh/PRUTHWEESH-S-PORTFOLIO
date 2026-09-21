@@ -102,7 +102,7 @@ const Dashboard = () => {
 
   const handleAdd = () => {
     const defaults = {
-      about: { name: '', role: '', paragraphs: [], location: '', degree: '', cgpa: '', status: '', github: '', linkedin: '', email: '', resumeLink: '' },
+      about: { name: '', role: '', paragraphs: [], location: '', degree: '', cgpa: '', status: '', github: '', linkedin: '', email: '', resumeLink: '', profileImage: '' },
       skills: { name: '', level: 80, category: 'Frontend' },
       experiences: { title: '', company: '', period: '', roleTypes: '', responsibilities: [], tags: [], images: [] },
       educations: { degree: '', institution: '', period: '', score: '' },
@@ -135,6 +135,7 @@ const Dashboard = () => {
     const file = e.target.files[0];
     if (!file) return;
 
+    const fieldName = e.target.dataset.field || 'image';
     const formData = new FormData();
     formData.append('image', file);
 
@@ -143,7 +144,7 @@ const Dashboard = () => {
       const { data } = await api.post('/upload', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
-      setCurrentEdit({ ...currentEdit, image: data.imageUrl });
+      setCurrentEdit((prev) => ({ ...prev, [fieldName]: data.imageUrl }));
       toast.success('Image uploaded successfully');
     } catch (error) {
       toast.error('Upload failed');
@@ -585,6 +586,53 @@ const Dashboard = () => {
                 <div>
                   <label className="block text-sm font-bold text-slate-400 mb-2">Paragraphs (separated by newline)</label>
                   <textarea value={Array.isArray(currentEdit?.paragraphs) ? currentEdit.paragraphs.join('\n') : (currentEdit?.paragraphs || '')} onChange={(e) => setCurrentEdit({ ...currentEdit, paragraphs: e.target.value })} className="w-full px-5 py-3 rounded-xl bg-slate-900 border border-slate-700/50 focus:border-primary outline-none text-white transition-all resize-none" rows={5} required />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-slate-400 mb-2">Profile Image</label>
+                  <div className="flex gap-4">
+                    <div className="flex-1">
+                      <input
+                        type="text"
+                        value={currentEdit?.profileImage || ''}
+                        onChange={(e) => setCurrentEdit({ ...currentEdit, profileImage: e.target.value })}
+                        className="w-full px-5 py-3 rounded-xl bg-slate-900 border border-slate-700/50 focus:border-primary outline-none text-white transition-all text-sm"
+                        placeholder="Image URL..."
+                      />
+                    </div>
+                    <div className="relative">
+                      <input
+                        type="file"
+                        id="about-profile-image-upload"
+                        className="hidden"
+                        onChange={handleImageUpload}
+                        accept="image/*"
+                        data-field="profileImage"
+                      />
+                      <label
+                        htmlFor="about-profile-image-upload"
+                        className={`flex items-center gap-2 px-4 py-3 rounded-xl bg-slate-800 border border-slate-700/50 text-slate-300 cursor-pointer hover:bg-slate-700 transition-all ${isUploading ? 'opacity-50 pointer-events-none' : ''}`}
+                      >
+                        {isUploading ? (
+                          <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+                        ) : (
+                          <Upload size={18} />
+                        )}
+                        <span className="text-sm font-medium">Upload</span>
+                      </label>
+                    </div>
+                  </div>
+                  {currentEdit?.profileImage && (
+                    <div className="mt-3 relative w-20 h-20 rounded-full overflow-hidden border border-slate-700 group/preview">
+                      <img src={currentEdit.profileImage} alt="Profile Preview" className="w-full h-full object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => setCurrentEdit({ ...currentEdit, profileImage: '' })}
+                        className="absolute top-1 right-1 p-1 bg-red-500 rounded-full text-white opacity-0 group-hover/preview:opacity-100 transition-opacity"
+                      >
+                        <X size={10} />
+                      </button>
+                    </div>
+                  )}
                 </div>
               </>
             )}

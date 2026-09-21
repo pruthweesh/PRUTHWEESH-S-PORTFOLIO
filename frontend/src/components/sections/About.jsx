@@ -68,7 +68,15 @@ const About = () => {
                 className="w-32 h-32 rounded-full mb-6 p-1 bg-gradient-to-tr from-primary to-secondary shadow-glow"
               >
                 <div className="w-full h-full rounded-full bg-background-dark flex items-center justify-center overflow-hidden border-[3px] border-background-dark group-hover:border-primary/50 transition-all duration-500">
-                  <span className="text-4xl sm:text-5xl group-hover:scale-110 transition-transform duration-500">👨‍💻</span>
+                  {aboutData.profileImage ? (
+                    <img
+                      src={aboutData.profileImage}
+                      alt={aboutData.name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-4xl sm:text-5xl group-hover:scale-110 transition-transform duration-500">👨‍💻</span>
+                  )}
                 </div>
               </motion.div>
 

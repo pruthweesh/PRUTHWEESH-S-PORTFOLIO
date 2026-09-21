@@ -11,7 +11,8 @@ const aboutSchema = new mongoose.Schema({
   linkedin: { type: String },
   email: { type: String },
   paragraphs: { type: [String], required: true },
-  resumeLink: { type: String }
+  resumeLink: { type: String },
+  profileImage: { type: String } // Cloudinary URL
 }, {
   timestamps: true
 });
