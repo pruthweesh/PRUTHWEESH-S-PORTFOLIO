@@ -141,9 +141,7 @@ const Dashboard = () => {
 
     setIsUploading(true);
     try {
-      const { data } = await api.post('/upload', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
+      const { data } = await api.post('/upload', formData);
       setCurrentEdit((prev) => ({ ...prev, [fieldName]: data.imageUrl }));
       toast.success('Image uploaded successfully');
     } catch (error) {
@@ -163,9 +161,7 @@ const Dashboard = () => {
       const uploadPromises = files.map(async (file) => {
         const formData = new FormData();
         formData.append('image', file);
-        const { data } = await api.post('/upload', formData, {
-          headers: { 'Content-Type': 'multipart/form-data' }
-        });
+        const { data } = await api.post('/upload', formData);
         return data.imageUrl;
       });
 
