@@ -24,6 +24,7 @@ const About = () => {
   };
 
   const [aboutData, setAboutData] = useState(fallbackAbout);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
@@ -35,6 +36,8 @@ const About = () => {
         }
       } catch (error) {
         console.error('Error fetching about data:', error);
+      } finally {
+        if (!cancelled) setIsLoading(false);
       }
     };
     fetchAbout();
@@ -68,7 +71,10 @@ const About = () => {
                 className="w-32 h-32 rounded-full mb-6 p-1 bg-gradient-to-tr from-primary to-secondary shadow-glow"
               >
                 <div className="w-full h-full rounded-full bg-background-dark flex items-center justify-center overflow-hidden border-[3px] border-background-dark group-hover:border-primary/50 transition-all duration-500">
-                  {aboutData.profileImage ? (
+                  {isLoading ? (
+                    /* Shimmer placeholder while profile image loads */
+                    <div className="w-full h-full rounded-full bg-slate-700/60 animate-pulse" />
+                  ) : aboutData.profileImage ? (
                     <img
                       src={aboutData.profileImage}
                       alt={aboutData.name}

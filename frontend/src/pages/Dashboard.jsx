@@ -119,32 +119,26 @@ const Dashboard = () => {
   const fetchData = async () => {
     setIsLoading(true);
     try {
-      const [abtRes, expRes, eduRes, projRes, skillRes, certRes, achRes] = await Promise.all([
-        api.get('/about'),
-        api.get('/experiences'),
-        api.get('/educations'),
-        api.get('/projects'),
-        api.get('/skills'),
-        api.get('/certifications'),
-        api.get('/achievements'),
+      // Single request to /portfolio returns all 7 collections in one round-trip.
+      // /contact is fetched in parallel since it requires auth and isn't in /portfolio.
+      const [portfolioRes, msgRes] = await Promise.all([
+        api.get('/portfolio'),
+        api.get('/contact').catch((err) => {
+          console.warn('Could not fetch messages', err);
+          return { data: { data: [] } };
+        }),
       ]);
-      
-      let msgRes = { data: { data: [] } };
-      try {
-        msgRes = await api.get('/contact');
-      } catch (err) {
-        console.warn('Could not fetch messages', err);
-      }
 
+      const pd = portfolioRes.data.data;
       setData({
-        about: abtRes.data.data || [],
-        experiences: expRes.data.data || [],
-        educations: eduRes.data.data || [],
-        projects: projRes.data.data || projRes.data || [],
-        skills: skillRes.data.data || skillRes.data || [],
-        certifications: certRes.data.data || certRes.data || [],
-        achievements: achRes.data.data || achRes.data || [],
-        messages: msgRes.data.data || msgRes.data || []
+        about:          pd.about          || [],
+        experiences:    pd.experiences    || [],
+        educations:     pd.educations     || [],
+        projects:       pd.projects       || [],
+        skills:         pd.skills         || [],
+        certifications: pd.certifications || [],
+        achievements:   pd.achievements   || [],
+        messages:       msgRes.data.data  || msgRes.data || [],
       });
     } catch (error) {
       toast.error('Failed to load dashboard data');
