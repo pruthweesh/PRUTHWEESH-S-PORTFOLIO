@@ -4,6 +4,9 @@ import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import toast from 'react-hot-toast';
 import Modal from '../components/ui/Modal';
+
+// Simple module-level cache for the portfolio data to avoid refetching on subsequent mounts
+let portfolioCache = null;
 import { 
   Layers, 
   Code2, 
@@ -117,9 +120,15 @@ const Dashboard = () => {
   };
 
   const fetchData = async () => {
+    // If we have cached portfolio data, use it directly to avoid network latency
+    if (portfolioCache) {
+      setData(portfolioCache);
+      setIsLoading(false);
+      return;
+    }
     setIsLoading(true);
     try {
-      // Single request to /portfolio returns all 7 collections in one round-trip.
+      // Single request to /portfolio returns all 7 collections in one round‑trip.
       // /contact is fetched in parallel since it requires auth and isn't in /portfolio.
       const [portfolioRes, msgRes] = await Promise.all([
         api.get('/portfolio'),
@@ -130,7 +139,7 @@ const Dashboard = () => {
       ]);
 
       const pd = portfolioRes.data.data;
-      setData({
+      const newData = {
         about:          pd.about          || [],
         experiences:    pd.experiences    || [],
         educations:     pd.educations     || [],
@@ -139,7 +148,9 @@ const Dashboard = () => {
         certifications: pd.certifications || [],
         achievements:   pd.achievements   || [],
         messages:       msgRes.data.data  || msgRes.data || [],
-      });
+      };
+      setData(newData);
+      portfolioCache = newData; // Store in cache for future mounts
     } catch (error) {
       toast.error('Failed to load dashboard data');
     } finally {

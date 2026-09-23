@@ -4,6 +4,9 @@ import { FaGithub, FaLinkedin, FaEnvelope } from 'react-icons/fa';
 import { useState, useEffect } from 'react';
 import api from '../../services/api';
 
+// Simple module-level cache to store the fetched about data across component instances
+let aboutCache = null;
+
 const About = () => {
   const fallbackAbout = {
     name: "Pruthweesh NV",
@@ -23,16 +26,23 @@ const About = () => {
     resumeLink: "/resume.pdf"
   };
 
-  const [aboutData, setAboutData] = useState(fallbackAbout);
-  const [isLoading, setIsLoading] = useState(true);
+  const [aboutData, setAboutData] = useState(aboutCache || fallbackAbout);
+  const [isLoading, setIsLoading] = useState(!aboutCache);
 
   useEffect(() => {
+    // If we already have cached data, no need to refetch
+    if (aboutCache) {
+      setIsLoading(false);
+      return;
+    }
     let cancelled = false;
     const fetchAbout = async () => {
       try {
         const response = await api.get('/portfolio');
         if (!cancelled && response.data.success && response.data.data?.about?.length > 0) {
-          setAboutData(response.data.data.about[0]);
+          const data = response.data.data.about[0];
+          aboutCache = data; // Store in module cache for future renders
+          setAboutData(data);
         }
       } catch (error) {
         console.error('Error fetching about data:', error);
