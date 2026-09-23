@@ -18,15 +18,20 @@ const AdminLogin = () => {
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    if (!email || !password) {
+      toast.error('Please enter both email and password');
+      return;
+    }
     setIsLoading(true);
     try {
-      const response = await api.post('/auth/login', { email, password });
+      const cleanEmail = email.trim().toLowerCase();
+      const response = await api.post('/auth/login', { email: cleanEmail, password });
       login(response.data.token);
       toast.success('Logged in successfully');
       navigate('/admin/dashboard');
     } catch (error) {
       console.error(error);
-      toast.error('Login failed. Please check your credentials.');
+      toast.error(error.response?.data?.message || 'Login failed. Please check your credentials.');
     } finally {
       setIsLoading(false);
     }
@@ -40,7 +45,8 @@ const AdminLogin = () => {
     }
     setIsForgotLoading(true);
     try {
-      const response = await api.post('/auth/forgot-password', { email: forgotEmail });
+      const cleanEmail = forgotEmail.trim().toLowerCase();
+      const response = await api.post('/auth/forgot-password', { email: cleanEmail });
       toast.success(
         response.data.message || 'If an account exists with this email, a password reset link has been sent.'
       );

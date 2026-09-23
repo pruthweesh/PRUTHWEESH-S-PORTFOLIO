@@ -10,7 +10,13 @@ const sendEmail = require('../utils/sendEmail');
 const authUser = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
 
-  const user = await User.findOne({ email });
+  if (!email || !password) {
+    res.status(400);
+    throw new Error('Please provide both email and password');
+  }
+
+  const cleanEmail = email.trim().toLowerCase();
+  const user = await User.findOne({ email: cleanEmail });
 
   if (user && (await user.matchPassword(password))) {
     if (user.role !== 'admin') {
@@ -90,7 +96,13 @@ const changePassword = asyncHandler(async (req, res) => {
   user.password = newPassword;
   await user.save();
 
-  res.json({ message: 'Password changed successfully' });
+  // Generate a fresh session token
+  const token = generateToken(user._id);
+
+  res.json({
+    message: 'Password changed successfully',
+    token,
+  });
 });
 
 // @desc    Request password reset email
@@ -112,7 +124,8 @@ const forgotPassword = asyncHandler(async (req, res) => {
 
   const genericSuccessMessage = 'If an account exists with this email, a password reset link has been sent.';
 
-  const user = await User.findOne({ email: email.toLowerCase().trim(), role: 'admin' });
+  const cleanEmail = email.toLowerCase().trim();
+  const user = await User.findOne({ email: cleanEmail, role: 'admin' });
 
   // If no user or not admin, return generic success message to prevent user enumeration
   if (!user) {
@@ -123,8 +136,20 @@ const forgotPassword = asyncHandler(async (req, res) => {
   const resetToken = user.getResetPasswordToken();
   await user.save({ validateBeforeSave: false });
 
-  // Create reset URL
-  const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+  // Dynamically determine the frontend URL (works with localhost, custom ports, and production Vercel)
+  let frontendUrl = 'http://localhost:5173';
+  if (process.env.FRONTEND_URL) {
+    frontendUrl = process.env.FRONTEND_URL.replace(/\/$/, '');
+  } else if (req.headers.origin) {
+    frontendUrl = req.headers.origin.replace(/\/$/, '');
+  } else if (req.headers.referer) {
+    try {
+      frontendUrl = new URL(req.headers.referer).origin;
+    } catch (e) {
+      // fallback
+    }
+  }
+
   const resetUrl = `${frontendUrl}/admin/reset-password/${resetToken}`;
 
   const message = `You are receiving this email because a password reset was requested for your Admin account.\n\nPlease reset your password by visiting the following link:\n\n${resetUrl}\n\nThis link will expire in 15 minutes.\n\nIf you did not request this, please ignore this email and your password will remain unchanged.`;
@@ -153,15 +178,22 @@ const forgotPassword = asyncHandler(async (req, res) => {
       html,
     });
 
+    console.log(`[PASSWORD RESET] Email sent successfully to ${user.email}`);
     res.status(200).json({ message: genericSuccessMessage });
   } catch (error) {
-    console.error('Password reset email failed to send:', error);
-    user.resetPasswordToken = undefined;
-    user.resetPasswordExpire = undefined;
-    await user.save({ validateBeforeSave: false });
+    console.error('Password reset email failed to send:', error.message);
+    console.warn('\n======================================================');
+    console.warn('⚠️ PASSWORD RESET LINK (Recovery URL):');
+    console.warn(resetUrl);
+    console.warn('======================================================\n');
 
     res.status(500);
-    throw new Error('Failed to send password reset email. Please check server email configuration.');
+    const isAuthError = error.code === 'EAUTH' || (error.message && error.message.includes('BadCredentials'));
+    throw new Error(
+      isAuthError
+        ? 'Email service error: Gmail rejected credentials (535 Bad Credentials). Please verify your 16-character Gmail App Password in backend/.env. For local development, the reset link is printed in the server terminal.'
+        : `Email service error: ${error.message}`
+    );
   }
 });
 
@@ -193,9 +225,10 @@ const resetPassword = asyncHandler(async (req, res) => {
   }
 
   // Hash incoming raw token to compare against stored hash
+  const cleanToken = token.trim();
   const resetPasswordToken = crypto
     .createHash('sha256')
-    .update(token)
+    .update(cleanToken)
     .digest('hex');
 
   const user = await User.findOne({
@@ -216,8 +249,11 @@ const resetPassword = asyncHandler(async (req, res) => {
 
   await user.save();
 
+  const freshToken = generateToken(user._id);
+
   res.status(200).json({
     message: 'Password reset successfully. You can now log in with your new password.',
+    token: freshToken,
   });
 });
 

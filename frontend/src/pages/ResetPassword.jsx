@@ -43,7 +43,9 @@ const ResetPassword = () => {
       });
 
       toast.success(response.data.message || 'Password reset successfully!');
-      navigate('/admin/login');
+      setTimeout(() => {
+        navigate('/admin/login');
+      }, 1200);
     } catch (error) {
       console.error(error);
       const message =

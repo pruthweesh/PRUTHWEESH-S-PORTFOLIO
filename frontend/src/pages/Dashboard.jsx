@@ -31,6 +31,7 @@ import {
 } from 'lucide-react';
 
 const Dashboard = () => {
+  const login = useAuthStore((state) => state.login);
   const logout = useAuthStore((state) => state.logout);
   const navigate = useNavigate();
   
@@ -93,6 +94,9 @@ const Dashboard = () => {
     setIsChangingPassword(true);
     try {
       const response = await api.post('/auth/change-password', passwordForm);
+      if (response.data.token) {
+        login(response.data.token);
+      }
       toast.success(response.data.message || 'Password changed successfully');
       setPasswordForm({
         currentPassword: '',
@@ -181,10 +185,11 @@ const Dashboard = () => {
   };
 
   const handleImageUpload = async (e) => {
-    const file = e.target.files[0];
+    const inputEl = e.target;
+    const file = inputEl.files[0];
     if (!file) return;
 
-    const fieldName = e.target.dataset.field || 'image';
+    const fieldName = inputEl.dataset.field || 'image';
     const formData = new FormData();
     formData.append('image', file);
 
@@ -196,10 +201,11 @@ const Dashboard = () => {
       setCurrentEdit((prev) => ({ ...prev, [fieldName]: data.imageUrl }));
       toast.success('Image uploaded successfully');
     } catch (error) {
-      toast.error('Upload failed');
+      toast.error(error.response?.data?.message || 'Upload failed');
       console.error(error);
     } finally {
       setIsUploading(false);
+      inputEl.value = '';
     }
   };
 
@@ -362,12 +368,20 @@ const Dashboard = () => {
             </div>
             <div className="flex items-center gap-3 pl-6 border-l border-slate-700/50">
               <div className="text-right hidden sm:block">
-                <p className="text-sm font-bold text-white">Pruthweesh NV</p>
+                <p className="text-sm font-bold text-white">{data.about[0]?.name || 'Pruthweesh NV'}</p>
                 <p className="text-xs text-slate-400">Administrator</p>
               </div>
-              <div className="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center text-primary font-bold border-2 border-slate-600">
-                P
-              </div>
+              {data.about[0]?.profileImage ? (
+                <img 
+                  src={data.about[0].profileImage} 
+                  alt="Admin Profile" 
+                  className="w-10 h-10 rounded-full object-cover border-2 border-primary/50 shadow-glow" 
+                />
+              ) : (
+                <div className="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center text-primary font-bold border-2 border-slate-600">
+                  P
+                </div>
+              )}
             </div>
           </div>
         </header>
@@ -457,7 +471,7 @@ const Dashboard = () => {
                         {activeTab === 'projects' && <th className="px-8 py-4">Technology</th>}
                         {activeTab === 'skills' && <th className="px-8 py-4">Category</th>}
                         {activeTab === 'certifications' && <th className="px-8 py-4">Issuer</th>}
-                        {['projects', 'certifications', 'achievements', 'experiences'].includes(activeTab) && <th className="px-8 py-4">Media</th>}
+                        {['projects', 'certifications', 'achievements', 'experiences', 'about'].includes(activeTab) && <th className="px-8 py-4">Media</th>}
                         {activeTab === 'messages' && (
                           <>
                             <th className="px-8 py-4">Contact Info</th>
@@ -507,9 +521,15 @@ const Dashboard = () => {
 
                           {activeTab === 'certifications' && <td className="px-8 py-6 text-slate-300 font-medium">{item.issuer}</td>}
 
-                          {['projects', 'certifications', 'achievements', 'experiences'].includes(activeTab) && (
+                          {['projects', 'certifications', 'achievements', 'experiences', 'about'].includes(activeTab) && (
                             <td className="px-8 py-6">
-                              {['achievements', 'experiences'].includes(activeTab) ? (
+                              {activeTab === 'about' ? (
+                                item.profileImage ? (
+                                  <img src={item.profileImage} alt={item.name} className="w-10 h-10 rounded-full bg-slate-800 object-cover border border-slate-700 shadow-sm" />
+                                ) : (
+                                  <span className="text-xs text-slate-600 italic">No photo</span>
+                                )
+                              ) : ['achievements', 'experiences'].includes(activeTab) ? (
                                 <div className="flex -space-x-2 overflow-hidden">
                                   {(item.images || []).slice(0, 3).map((img, i) => (
                                     <img key={i} src={img} className="w-8 h-8 rounded-full border-2 border-slate-800 object-cover" />
