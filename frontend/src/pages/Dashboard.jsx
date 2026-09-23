@@ -26,7 +26,8 @@ import {
   GraduationCap,
   Info,
   Upload,
-  Image as ImageIcon
+  Image as ImageIcon,
+  KeyRound
 } from 'lucide-react';
 
 const Dashboard = () => {
@@ -53,10 +54,58 @@ const Dashboard = () => {
   const [currentEdit, setCurrentEdit] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [isUploading, setIsUploading] = useState(false);
+  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
+  const [passwordForm, setPasswordForm] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+  });
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
 
   const handleLogout = () => {
     logout();
     navigate('/admin/login');
+  };
+
+  const handleChangePassword = async (e) => {
+    e.preventDefault();
+
+    if (!passwordForm.currentPassword || !passwordForm.newPassword || !passwordForm.confirmPassword) {
+      toast.error('All fields are required');
+      return;
+    }
+
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      toast.error('New password and confirm password do not match');
+      return;
+    }
+
+    if (passwordForm.newPassword.length < 6) {
+      toast.error('New password must be at least 6 characters long');
+      return;
+    }
+
+    if (passwordForm.currentPassword === passwordForm.newPassword) {
+      toast.error('New password must be different from current password');
+      return;
+    }
+
+    setIsChangingPassword(true);
+    try {
+      const response = await api.post('/auth/change-password', passwordForm);
+      toast.success(response.data.message || 'Password changed successfully');
+      setPasswordForm({
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: '',
+      });
+      setIsPasswordModalOpen(false);
+    } catch (error) {
+      console.error(error);
+      toast.error(error.response?.data?.message || 'Failed to change password');
+    } finally {
+      setIsChangingPassword(false);
+    }
   };
 
   const fetchData = async () => {
@@ -269,7 +318,15 @@ const Dashboard = () => {
             ))}
           </nav>
 
-          <div className="p-4 border-t border-slate-700/50">
+          <div className="p-4 border-t border-slate-700/50 space-y-2">
+            <button 
+              type="button"
+              onClick={() => setIsPasswordModalOpen(true)}
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:bg-slate-800 hover:text-slate-200 transition-all duration-200"
+            >
+              <KeyRound size={20} />
+              <span className="font-medium">Change Password</span>
+            </button>
             <button 
               onClick={handleLogout}
               className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-red-400 hover:bg-red-500/10 transition-all duration-200"
@@ -998,6 +1055,80 @@ const Dashboard = () => {
             <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 py-4 px-6 rounded-xl border border-slate-700 text-slate-400 font-bold hover:bg-slate-800 transition-all">Cancel</button>
             <button type="submit" className="flex-[2] btn-primary py-4 px-6 rounded-xl font-bold shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all">
               {currentEdit?._id ? 'Update Entry' : 'Create Entry'}
+            </button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Change Password Modal */}
+      <Modal
+        isOpen={isPasswordModalOpen}
+        onClose={() => {
+          setIsPasswordModalOpen(false);
+          setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+        }}
+        title="Change Password"
+      >
+        <form onSubmit={handleChangePassword} className="space-y-6">
+          <div className="space-y-2">
+            <label className="text-sm font-bold text-slate-400">Current Password</label>
+            <input
+              type="password"
+              value={passwordForm.currentPassword}
+              onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
+              className="w-full px-5 py-3 rounded-xl bg-slate-900 border border-slate-700/50 focus:border-primary outline-none text-white transition-all text-sm placeholder:text-slate-600"
+              placeholder="Enter current password"
+              required
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-bold text-slate-400">New Password</label>
+            <input
+              type="password"
+              value={passwordForm.newPassword}
+              onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
+              className="w-full px-5 py-3 rounded-xl bg-slate-900 border border-slate-700/50 focus:border-primary outline-none text-white transition-all text-sm placeholder:text-slate-600"
+              placeholder="Enter new password (min. 6 characters)"
+              required
+              minLength={6}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-bold text-slate-400">Confirm New Password</label>
+            <input
+              type="password"
+              value={passwordForm.confirmPassword}
+              onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
+              className="w-full px-5 py-3 rounded-xl bg-slate-900 border border-slate-700/50 focus:border-primary outline-none text-white transition-all text-sm placeholder:text-slate-600"
+              placeholder="Confirm new password"
+              required
+              minLength={6}
+            />
+          </div>
+
+          <div className="flex gap-4 pt-4">
+            <button
+              type="button"
+              onClick={() => {
+                setIsPasswordModalOpen(false);
+                setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+              }}
+              className="flex-1 py-4 px-6 rounded-xl border border-slate-700 text-slate-400 font-bold hover:bg-slate-800 transition-all"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={isChangingPassword}
+              className="flex-[2] btn-primary py-4 px-6 rounded-xl font-bold shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:scale-100 flex items-center justify-center gap-2"
+            >
+              {isChangingPassword ? (
+                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+              ) : (
+                'Update Password'
+              )}
             </button>
           </div>
         </form>

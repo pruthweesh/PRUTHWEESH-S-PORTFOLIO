@@ -9,6 +9,7 @@ import Navbar from './components/layout/Navbar';
 import ScrollProgress from './components/layout/ScrollProgress';
 import Home from './pages/Home';
 import AdminLogin from './pages/AdminLogin';
+import ResetPassword from './pages/ResetPassword';
 import Dashboard from './pages/Dashboard';
 
 const ProtectedRoute = ({ children }) => {
@@ -37,6 +38,7 @@ const AppContent = () => {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/admin/login" element={<AdminLogin />} />
+          <Route path="/admin/reset-password/:token" element={<ResetPassword />} />
           <Route 
             path="/admin/dashboard" 
             element={
