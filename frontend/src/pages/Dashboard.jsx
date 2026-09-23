@@ -297,6 +297,14 @@ const Dashboard = () => {
   return (
     <div className="flex h-screen bg-[#0f172a] text-slate-200 overflow-hidden font-sans">
       {/* Sidebar */}
+      {/* Mobile overlay backdrop - closes sidebar when tapping outside */}
+      {isSidebarOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/50 lg:hidden"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
       <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-[#1e293b] border-r border-slate-700/50 transform transition-transform duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:relative lg:translate-x-0`}>
         <div className="flex flex-col h-full">
           <div className="p-6 flex items-center gap-3 border-b border-slate-700/50">
@@ -304,13 +312,24 @@ const Dashboard = () => {
               <LayoutDashboard size={24} className="text-white" />
             </div>
             <h1 className="text-xl font-bold tracking-tight text-white">Admin Panel</h1>
+            {/* Close button inside sidebar - only visible on mobile */}
+            <button
+              onClick={() => setIsSidebarOpen(false)}
+              className="ml-auto p-1 lg:hidden text-slate-400 hover:text-white transition-colors"
+              aria-label="Close sidebar"
+            >
+              <X size={20} />
+            </button>
           </div>
 
           <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
             {menuItems.map(item => (
               <button
                 key={item.id}
-                onClick={() => setActiveTab(item.id)}
+                onClick={() => {
+                  setActiveTab(item.id);
+                  setIsSidebarOpen(false);
+                }}
                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
                   activeTab === item.id 
                     ? 'bg-primary text-white shadow-lg shadow-primary/20' 
