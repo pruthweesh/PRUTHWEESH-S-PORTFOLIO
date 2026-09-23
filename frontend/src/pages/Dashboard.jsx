@@ -37,7 +37,7 @@ const Dashboard = () => {
   const navigate = useNavigate();
   
   const [activeTab, setActiveTab] = useState('projects');
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   
   // States
   const [data, setData] = useState({
@@ -296,43 +296,21 @@ const Dashboard = () => {
 
   return (
     <div className="flex h-screen bg-[#0f172a] text-slate-200 overflow-hidden font-sans">
-      {/* Mobile Backdrop Overlay */}
-      {isSidebarOpen && (
-        <div 
-          onClick={() => setIsSidebarOpen(false)}
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden"
-          aria-hidden="true"
-        />
-      )}
-
       {/* Sidebar */}
       <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-[#1e293b] border-r border-slate-700/50 transform transition-transform duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:relative lg:translate-x-0`}>
         <div className="flex flex-col h-full">
-          <div className="p-6 flex items-center justify-between border-b border-slate-700/50">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center shadow-glow">
-                <LayoutDashboard size={24} className="text-white" />
-              </div>
-              <h1 className="text-xl font-bold tracking-tight text-white">Admin Panel</h1>
+          <div className="p-6 flex items-center gap-3 border-b border-slate-700/50">
+            <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center shadow-glow">
+              <LayoutDashboard size={24} className="text-white" />
             </div>
-            <button 
-              type="button"
-              onClick={() => setIsSidebarOpen(false)}
-              className="p-1.5 rounded-lg lg:hidden text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
-              aria-label="Close sidebar"
-            >
-              <X size={20} />
-            </button>
+            <h1 className="text-xl font-bold tracking-tight text-white">Admin Panel</h1>
           </div>
 
           <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
             {menuItems.map(item => (
               <button
                 key={item.id}
-                onClick={() => {
-                  setActiveTab(item.id);
-                  setIsSidebarOpen(false);
-                }}
+                onClick={() => setActiveTab(item.id)}
                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
                   activeTab === item.id 
                     ? 'bg-primary text-white shadow-lg shadow-primary/20' 
@@ -353,10 +331,7 @@ const Dashboard = () => {
           <div className="p-4 border-t border-slate-700/50 space-y-2">
             <button 
               type="button"
-              onClick={() => {
-                setIsPasswordModalOpen(true);
-                setIsSidebarOpen(false);
-              }}
+              onClick={() => setIsPasswordModalOpen(true)}
               className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:bg-slate-800 hover:text-slate-200 transition-all duration-200"
             >
               <KeyRound size={20} />
@@ -376,7 +351,7 @@ const Dashboard = () => {
       {/* Main Content */}
       <main className="flex-1 flex flex-col min-w-0 bg-[#0f172a] relative">
         {/* Header */}
-        <header className="h-20 flex items-center justify-between px-4 sm:px-8 bg-[#1e293b]/50 backdrop-blur-md border-b border-slate-700/50 sticky top-0 z-40">
+        <header className="h-20 flex items-center justify-between px-8 bg-[#1e293b]/50 backdrop-blur-md border-b border-slate-700/50 sticky top-0 z-40">
           <div className="flex items-center gap-4">
             <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="p-2 lg:hidden text-slate-400 hover:text-white">
               {isSidebarOpen ? <X size={24} /> : <Menu size={24} />}
