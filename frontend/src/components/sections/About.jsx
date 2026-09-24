@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import { Download } from 'lucide-react';
 import { FaGithub, FaLinkedin, FaEnvelope } from 'react-icons/fa';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, memo } from 'react';
 import api from '../../services/api';
 
 // Simple module-level cache to store the fetched about data across component instances
@@ -89,6 +89,7 @@ const About = () => {
                       src={aboutData.profileImage}
                       alt={aboutData.name}
                       className="w-full h-full object-cover"
+                      loading="lazy"
                     />
                   ) : (
                     <span className="text-4xl sm:text-5xl group-hover:scale-110 transition-transform duration-500">👨‍💻</span>
@@ -234,4 +235,4 @@ const About = () => {
   );
 };
 
-export default About;
+export default memo(About);
